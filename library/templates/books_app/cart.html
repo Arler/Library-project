@@ -1,0 +1,24 @@
+{% extends 'default/default_2.html' %}
+
+{% block title %}
+    Корзина
+{% endblock title %}
+
+{% block content %}
+<h1>Ваша корзина. Всего книг {{ books|length }}</h1>
+<hr>
+<tr>
+    <td>Название</td>
+    <td>Дата написания</td>
+    <td>Превью</td>
+    </tr>
+    {% for book in books %}
+        <tr>
+            <td>
+                <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
+            </td>
+            <td>{{ book.date_written|date:'d M Y' }}</td>
+            <td>{{ book.preview|truncatewords:20 }}</td>
+        </tr>
+    {% endfor %}
+{% endblock content %}

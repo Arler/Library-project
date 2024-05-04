@@ -1,0 +1,20 @@
+{% extends 'default/default_2.html' %}
+
+{% block title %}
+    Книга
+{% endblock title %}
+
+{% block content %}
+<h1>{{ book.name }}</h1>
+    <table>
+        <tr>
+            <td>Автор</td>
+            <td>Дата написания</td>
+        </tr>
+        <tr>
+            <td>{{ book.author }}</td>
+            <td>{{ book.date_written|date:'d M Y' }}</td>
+        </tr>
+    </table>
+<h3>{{ book.preview }}</h3>
+{% endblock content %}
