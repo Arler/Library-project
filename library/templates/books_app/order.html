@@ -1,0 +1,26 @@
+{% extends 'default/default.html' %}
+
+{% block title %}
+    Заказ
+{% endblock title %}
+
+{% block content %}
+<h1>Заказ</h1>
+<hr>
+<tr>
+    <td>Название</td>
+    <td>Дата написания</td>
+    <td>Превью</td>
+</tr>
+{% for book_loan in books %}
+    {% for book in book_loan.books.all %}
+        <tr>
+            <td>
+                <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
+            </td>
+            <td>{{ book.date_written|date:'d M Y' }}</td>
+            <td>{{ book.preview|truncatewords:20 }}</td>
+        </tr>
+    {% endfor %}
+{% endfor %}
+{% endblock content %}

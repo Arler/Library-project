@@ -18,22 +18,24 @@
             <td>Превью</td>
         </tr>
         {% for book in books %}
-        <form method="post">
-            <tr>
-                <td>
-                    <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
-                </td>
-                <td>{{ book.date_written|date:'d M Y' }}</td>
-                <td>{{ book.preview|truncatewords:20 }}</td>
-                {% if user.is_authenticated %}
-                <td>
-                    {% csrf_token %}
-                    <input type="hidden" name="book_id" value="{{ book.id }}">
-                    <button type="submit" name="action" value="addcart">Добавить в корзину</button>
-                </td>
-                {% endif %}
-            </tr>
-        </form>
+            {% if not book.issuet %}
+                <form method="post">
+                    <tr>
+                        <td>
+                            <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
+                        </td>
+                        <td>{{ book.date_written|date:'d M Y' }}</td>
+                        <td>{{ book.preview|truncatewords:20 }}</td>
+                        {% if user.is_authenticated %}
+                        <td>
+                            {% csrf_token %}
+                            <input type="hidden" name="book_id" value="{{ book.id }}">
+                            <button type="submit" name="action" value="addcart">Добавить в корзину</button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                </form>
+            {% endif %}
         {% endfor %}
     {% else %}
         <h2>Книг нет!</h2>

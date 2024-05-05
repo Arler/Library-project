@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.core.cache import cache
 
-from .models import Book, Cart
+from .models import Book, Cart, BookLoan
 import random, time, string
 
 
@@ -88,9 +88,21 @@ def issuance_view(request):
 	if request.method == 'POST' and request.POST.get('action') == 'issuance':
 		code = request.POST.get('code')
 		books = cache.get(code)
-		print(books)
+		book_loan = BookLoan.objects.create(user=request.user)
+		for book in books:
+			book.issuet = True
+			book_loan.books.add(book)
+			book.save()
 
+		book_loan.save()
 		if books:
 			context['books'] = books
 
 	return render(request, 'books_app/issuance.html', context)
+
+@login_required
+def order(request):
+	issuet_books = BookLoan.objects.filter(user=request.user)
+	print(issuet_books)
+	context = {'books': issuet_books}
+	return render(request, 'books_app/order.html', context=context)
