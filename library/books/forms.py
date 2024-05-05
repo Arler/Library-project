@@ -5,10 +5,10 @@ from .models import Book
 
 
 class BookForm(forms.ModelForm):
-	name = forms.CharField(max_length=255)
-	author = forms.CharField(max_length=255)
-	preview = forms.Textarea()
-	date_written = forms.DateField()
+	name = forms.CharField(max_length=255, label='Название')
+	author = forms.CharField(max_length=255, label='Автор')
+	preview = forms.CharField(widget=forms.Textarea(), label='Превью')
+	date_written = forms.DateField(label='Дата написания')
 
 	class Meta:
 		model = Book

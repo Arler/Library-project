@@ -1,4 +1,4 @@
-{% extends 'default/default_2.html' %}
+{% extends 'default/default.html' %}
 
 {% block title %}
     Корзина
@@ -7,10 +7,15 @@
 {% block content %}
 <h1>Ваша корзина. Всего книг {{ books|length }}</h1>
 <hr>
-<tr>
-    <td>Название</td>
-    <td>Дата написания</td>
-    <td>Превью</td>
+{% if one_time_code %}
+    <h4>Ваш одноразовый код: {{ one_time_code }}</h4>
+{% endif %}
+<hr>
+<table>
+    <tr>
+        <td>Название</td>
+        <td>Дата написания</td>
+        <td>Превью</td>
     </tr>
     {% for book in books %}
         <tr>
@@ -19,6 +24,19 @@
             </td>
             <td>{{ book.date_written|date:'d M Y' }}</td>
             <td>{{ book.preview|truncatewords:20 }}</td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="book" value="{{ book.id }}">
+                    <button type="submit" name="action" value="remove">Убрать из корзины</button>
+                </form>
+            </td>
         </tr>
     {% endfor %}
+</table>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="books" value="{% for book in books %}{{ book.id }},{% endfor %}">
+    <button type="submit" name="action" value="buy">Заказать</button>
+</form>
 {% endblock content %}

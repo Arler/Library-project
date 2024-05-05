@@ -12,3 +12,4 @@ class Book(models.Model):
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     books = models.ManyToManyField(Book)
+    one_time_code = models.CharField(max_length=32, blank=True)
