@@ -1,0 +1,36 @@
+{% extends 'default/default.html' %}
+
+{% block title %}
+    Выдача
+{% endblock title %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="code">
+    <button type="submit" name="action" value="issuance">Получить</button>
+</form>
+
+{% if one_time_code %}
+    {% if books %}
+        <h1>Ваши книги</h1>
+        <hr>
+        <table>
+            <tr>
+                <td>Название</td>
+                <td>Дата написания</td>
+                <td>Превью</td>
+            </tr>
+            {% for book in books %}
+                <tr>
+                    <td>
+                        {{ book.name }}
+                    </td>
+                    <td>{{ book.date_written|date:'d M Y' }}</td>
+                    <td>{{ book.preview|truncatewords:20 }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endif %}
+{% endblock content %}

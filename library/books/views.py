@@ -1,12 +1,12 @@
 from django.views.generic import (
-	ListView, DetailView, CreateView, UpdateView, DeleteView
+	ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 )
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.core.cache import cache
 
 from .models import Book, Cart
-from .forms import BookForm
 import random, time, string
 
 
@@ -58,14 +58,14 @@ class CartView(PermissionRequiredMixin, ListView):
 	def post(self,request):
 		if 'action' in request.POST:
 			action = request.POST['action']
-			if action == 'buy':
+			if action == 'buy' and request.POST['books']:
 				one_time_code = ''
 				random.seed(time.time())
 				for _ in range(16):
 					one_time_code += random.choice(string.ascii_letters)
 				split_ids = request.POST['books'].rstrip(',').split(',')
 				books_list = list(map(int, split_ids))
-				books = list(Book.objects.filter(id__in=books_list).values_list('name', flat=True))
+				books = Book.objects.filter(id__in=books_list).all()
 
 				cache.set(f'{one_time_code}', books)
 				cart = Cart.objects.get(user=request.user)
@@ -80,8 +80,17 @@ class CartView(PermissionRequiredMixin, ListView):
 		return redirect('/cart/')
 
 
-class BookAdd(CreateView):
-	form_class = BookForm
-	model = Book
-	template_name = 'books_app/book_edit.html'
-	success_url = '/'
+@login_required
+def issuance_view(request):
+	cart = Cart.objects.get(user=request.user)
+	context = {'one_time_code': cart.one_time_code}
+
+	if request.method == 'POST' and request.POST.get('action') == 'issuance':
+		code = request.POST.get('code')
+		books = cache.get(code)
+		print(books)
+
+		if books:
+			context['books'] = books
+
+	return render(request, 'books_app/issuance.html', context)

@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 
 from .models import Book
 
@@ -28,3 +29,20 @@ class BookForm(forms.ModelForm):
 			raise ValidationError('Название не должно быть идентично превью')
 
 		return cleaned_data
+
+
+class OneTimeCodeForm(forms.Form):
+	code = forms.CharField(max_length=125, label='Код')
+
+	def clean(self):
+		cleaned_data = super().clean()
+		code = cleaned_data.get('code')
+		code = code.strip(' ')
+		books = cache.get(code)
+
+		if books:
+
+			cache.delete(f'{code}')
+			return cleaned_data
+		else:
+			raise ValidationError('Код введён неправильно')
