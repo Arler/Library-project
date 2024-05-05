@@ -8,6 +8,8 @@ class Book(models.Model):
     preview = models.TextField()
     date_written = models.DateField()
 
+    def __str__(self):
+        return f'{self.name}'
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
