@@ -1,0 +1,11 @@
+{% extends 'default/default.html' %}
+
+{% block content %}
+<h1>Добавить книгу</h1>
+<hr>
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Добавить" />
+</form>
+{% endblock content %}
