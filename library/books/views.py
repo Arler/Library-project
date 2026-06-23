@@ -1,5 +1,5 @@
 from django.views.generic import (
-	ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
+	ListView, DetailView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -37,6 +37,10 @@ class Library(ListView):
 				cart.books.add(book)
 				cart.save()
 		return redirect('/')
+	
+	def get_queryset(self):
+		return Book.objects.filter(issuet=False)
+
 
 
 class CartView(LoginRequiredMixin, ListView):
