@@ -23,7 +23,7 @@ class Cart(models.Model):
 
 
 class BookLoan(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     books = models.ManyToManyField(Book)
     loan_date = models.DateField(auto_now_add=True)
     return_date = models.DateField(null=True, blank=True)
