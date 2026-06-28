@@ -5,10 +5,10 @@
 {% endblock title %}
 
 {% block content %}
-<h1>Ваша корзина. Всего книг {{ books|length }}</h1>
+<h1>Ваша корзина. Всего книг {{ cart.books|length }}</h1>
 <hr>
-{% if one_time_code %}
-    <h4>Ваш одноразовый код: {{ one_time_code }}</h4>
+{% if cart.one_time_code %}
+    <h4>Ваш одноразовый код: {{ cart.one_time_code }}</h4>
 {% endif %}
 <hr>
 <table>
@@ -17,7 +17,7 @@
         <td>Дата написания</td>
         <td>Превью</td>
     </tr>
-    {% for book in books %}
+    {% for book in cart.books.all %}
         <tr>
             <td>
                 <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
@@ -36,7 +36,7 @@
 </table>
 <form method="post">
     {% csrf_token %}
-    <input type="hidden" name="books" value="{% for book in books %}{{ book.id }},{% endfor %}">
+    <input type="hidden" name="books" value="{% for book in cart.books.all %}{{ book.id }},{% endfor %}">
     <button type="submit" name="action" value="buy">Заказать</button>
 </form>
 {% endblock content %}

@@ -26,38 +26,44 @@ class Library(ListView):
 	def post(self,request):
 		if 'action' in request.POST:
 			action = request.POST['action']
+			cart = Cart.objects.get(user=request.user)
+			if not cart:
+				cart = Cart.objects.get(user=request.user)
 			if action == 'addcart':
-				cart_exists = Cart.objects.filter(user=request.user).exists()
-				if cart_exists:
-					cart = Cart.objects.get(user=request.user)
-				else:
-					cart = Cart.objects.create(user=request.user)
-
 				book = Book.objects.get(pk=request.POST['book_id'])
 				cart.books.add(book)
+				cart.save()
+			if action == 'removecart':
+				book = Book.objects.get(pk=request.POST['book_id'])
+				cart.books.remove(book)
 				cart.save()
 		return redirect('/')
 	
 	def get_queryset(self):
 		return Book.objects.filter(issuet=False)
+	
+	def get_context_data(self, **kwargs):
+		context_data = super().get_context_data(**kwargs)
+		context_data['cart'] = Cart.objects.get(user=self.request.user)
+		return context_data
 
 
 
 class CartView(LoginRequiredMixin, ListView):
+	model = Cart
 	login_url = "/accounts/login/"
 	template_name = 'books_app/cart.html'
-	context_object_name = 'books'
+	context_object_name = 'cart'
 
 	def get_queryset(self):
-		cart = Cart.objects.get(user=self.request.user)
-		return cart.books.all()
+		return Cart.objects.get(user=self.request.user) 
 
-	def get_context_data(self, *args, **kwargs):
-		context_data = super().get_context_data(*args, **kwargs)
-		if self.request.user.is_authenticated:
-			context_data['one_time_code'] = Cart.objects.get(user=self.request.user).one_time_code
+	# def get_context_data(self, *args, **kwargs):
+	# 	context_data = super().get_context_data(*args, **kwargs)
+	# 	if self.request.user.is_authenticated:
+	# 		context_data['one_time_code'] = Cart.objects.get(user=self.request.user).one_time_code
 
-		return context_data
+	# 	return context_data
 
 	def post(self,request):
 		if 'action' in request.POST:
