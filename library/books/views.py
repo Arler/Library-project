@@ -6,9 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.core.cache import cache
 
-from .models import Book, Cart, BookLoan
+from .models import Book, Cart, BookLoan, BookReturn
 import random, time, string
-
 
 class BookDetail(DetailView):
 	model = Book
@@ -57,13 +56,6 @@ class CartView(LoginRequiredMixin, ListView):
 
 	def get_queryset(self):
 		return Cart.objects.get(user=self.request.user) 
-
-	# def get_context_data(self, *args, **kwargs):
-	# 	context_data = super().get_context_data(*args, **kwargs)
-	# 	if self.request.user.is_authenticated:
-	# 		context_data['one_time_code'] = Cart.objects.get(user=self.request.user).one_time_code
-
-	# 	return context_data
 
 	def post(self,request):
 		if 'action' in request.POST:
@@ -115,6 +107,52 @@ def issuance_view(request):
 
 @login_required
 def order(request):
-	issuet_books = BookLoan.objects.filter(user=request.user)
+	active_loans = BookLoan.objects.filter(user=request.user).exclude(id__in=BookReturn.objects.values_list('loan', flat=True))
+	issuet_books = Book.objects.filter(bookloan__in=active_loans)
 	context = {'books': issuet_books}
 	return render(request, 'books_app/order.html', context=context)
+
+@login_required
+def return_view(request):
+
+	if not cache.has_key(f'return_books_{request.user}'):
+		cache.set(f'return_books_{request.user}', set())
+	return_books = cache.get(f'return_books_{request.user}')
+	if 'action' in request.POST:
+		action = request.POST['action']
+		if action == 'addreturn':								# Добавление возвращаемой книги в соответствующий список для дальнейшего возврата
+			return_books.add(int(request.POST['book_id']))
+			cache.set(f'return_books_{request.user}', return_books)
+			return_books = list(cache.get(f'return_books_{request.user}'))
+		elif action == 'removereturn':							# Удаление возвращаемой книги из списка
+			return_books.discard(int(request.POST['book_id']))
+			cache.set(f'return_books_{request.user}', return_books)
+			return_books = list(cache.get(f'return_books_{request.user}'))
+		elif action == 'return':									# Возврат выбранных книг
+			book_loans = BookLoan.objects.filter(books__id__in=return_books, user=request.user).exclude(id__in=BookReturn.objects.values_list('loan', flat=True))
+			for book_loan in book_loans:
+				book_return = BookReturn.objects.create(user=request.user, loan=book_loan)
+				related_books_ids = set(book_loan.books.all().values_list('id', flat=True)) & return_books
+				for book in Book.objects.filter(id__in=related_books_ids):
+					book.issuet = False
+					book.save()
+					book_return.books.add(book)
+				not_returned_books = book_loan.books.all().filter(issuet=True)
+				if not_returned_books:
+					new_book_loan = BookLoan.objects.create(
+						user=request.user,
+						loan_date=book_loan.loan_date,
+						return_date=book_loan.return_date
+						)
+					new_book_loan.books.set(not_returned_books)
+					new_book_loan.save()
+				book_return.save()
+			cache.delete(f'return_books_{request.user}')
+
+	active_loans = BookLoan.objects.filter(user=request.user).exclude(id__in=BookReturn.objects.values_list('loan', flat=True))
+	issuet_books = Book.objects.filter(bookloan__in=active_loans)
+	context = {
+		'issuet_books': issuet_books,
+		'return_books': list(return_books)
+		}
+	return render(request, 'books_app/return.html', context=context)

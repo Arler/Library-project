@@ -34,3 +34,10 @@ class BookLoan(models.Model):
 
     def __str__(self):
         return f'{self.user}'
+
+
+class BookReturn(models.Model):
+    loan = models.ForeignKey(BookLoan, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    books = models.ManyToManyField(Book)
+    return_date = models.DateField(auto_now_add=True)

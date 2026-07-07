@@ -1,0 +1,48 @@
+{% extends 'default/default.html' %}
+
+{% block title %}
+    Возврат
+{% endblock title %}
+
+{% block content %}
+    <h1>Возврат книг</h1>
+    <hr>
+    {% if issuet_books %}
+        <tr>
+            <td>Название</td>
+            <td>Дата написания</td>
+            <td>Превью</td>
+        </tr>
+        {% for book in issuet_books %}
+            <tr>
+                <td>
+                    <a href="{% url 'book_detail' book.id %}">{{ book.name }}</a>
+                </td>
+                <td>{{ book.date_written|date:'d M Y' }}</td>
+                <td>{{ book.preview|truncatewords:20 }}</td>
+                <td>
+                    {% if book.id not in return_books %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="book_id" value="{{ book.id }}">
+                            <button type="submit" name="action" value="addreturn">Добавить к возврату</button>
+                        </form>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="book_id" value="{{ book.id }}">
+                            <button type="submit" name="action" value="removereturn">Убрать из возврата</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        <br>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="action" value="return">Вернуть</button>
+        </form>
+    {% else %}
+        <h3>У вас нет заказанных книг</h3>
+    {% endif %}
+    {% endblock content %}
