@@ -48,39 +48,34 @@ class Library(ListView):
 		return context_data
 
 
+@login_required
+def cart_view(request):
 
-class CartView(LoginRequiredMixin, ListView):
-	model = Cart
-	login_url = "/accounts/login/"
-	template_name = 'books_app/cart.html'
-	context_object_name = 'cart'
+	if request.method == 'POST':
+		action = request.POST['action']
+		if action == 'buy' and request.POST['books']:
+			one_time_code = ''
+			random.seed(time.time())
+			for _ in range(16):
+				one_time_code += random.choice(string.ascii_letters)
+			split_ids = request.POST['books'].rstrip(',').split(',')
+			books_list = list(map(int, split_ids))
+			books = Book.objects.filter(id__in=books_list).all()
 
-	def get_queryset(self):
-		return Cart.objects.get(user=self.request.user) 
-
-	def post(self,request):
-		if 'action' in request.POST:
-			action = request.POST['action']
-			if action == 'buy' and request.POST['books']:
-				one_time_code = ''
-				random.seed(time.time())
-				for _ in range(16):
-					one_time_code += random.choice(string.ascii_letters)
-				split_ids = request.POST['books'].rstrip(',').split(',')
-				books_list = list(map(int, split_ids))
-				books = Book.objects.filter(id__in=books_list).all()
-
-				cache.set(f'{one_time_code}', books)
-				cart = Cart.objects.get(user=request.user)
-				cart.one_time_code = one_time_code
-				cart.save()
-			if action == 'remove':
-				book = Book.objects.get(pk=request.POST['book'])
-				cart = Cart.objects.get(user=request.user)
-				cart.books.remove(book)
-				cart.save()
+			cache.set(f'{one_time_code}', books)
+			cart = Cart.objects.get(user=request.user)
+			cart.one_time_code = one_time_code
+			cart.save()
+		elif action == 'remove':
+			book = Book.objects.get(pk=request.POST['book'])
+			cart = Cart.objects.get(user=request.user)
+			cart.books.remove(book)
+			cart.save()
 
 		return redirect('/cart/')
+	
+	context = {'cart': Cart.objects.get(user=request.user)}
+	return render(request, 'books_app/cart.html', context=context)
 
 
 @login_required
