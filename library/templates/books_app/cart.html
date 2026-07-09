@@ -5,7 +5,7 @@
 {% endblock title %}
 
 {% block content %}
-<h1>Ваша корзина. Всего книг {{ cart.books|length }}</h1>
+<h1>Ваша корзина. Всего книг: {{ cart.books.all|length }}</h1>
 <hr>
 {% if cart.one_time_code %}
     <h4>Ваш одноразовый код: {{ cart.one_time_code }}</h4>
