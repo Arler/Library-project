@@ -1,6 +1,7 @@
 from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
 from django import forms
+from books.models import Cart
 
 
 class CustomSignupForm(SignupForm):
@@ -14,7 +15,11 @@ class CustomSignupForm(SignupForm):
 		user.first_name = self.cleaned_data.get('first_name')
 		user.surname = self.cleaned_data['surname']
 		user.username = f'{user.last_name} {user.first_name} {user.surname}'
+
 		users = Group.objects.get(name="Пользователи")
 		user.groups.add(users)
+
+		Cart.objects.create(user=user).save()
+
 		user.save()
 		return user
