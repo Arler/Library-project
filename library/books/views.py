@@ -80,26 +80,29 @@ def cart_view(request):
 
 @login_required
 def issuance_view(request):
-	cart = Cart.objects.get(user=request.user)
-	context = {'one_time_code': cart.one_time_code}
+	if request.user.is_staff:
+		cart = Cart.objects.get(user=request.user)
+		context = {'one_time_code': cart.one_time_code}
 
-	if request.method == 'POST' and request.POST.get('action') == 'issuance':
-		code = request.POST.get('code')
-		books = cache.get(code)
-		if books:
-			book_loan = BookLoan.objects.create(user=request.user)
-			context['books'] = books
+		if request.method == 'POST' and request.POST.get('action') == 'issuance':
+			code = request.POST.get('code')
+			books = cache.get(code)
+			if books:
+				book_loan = BookLoan.objects.create(user=request.user)
+				context['books'] = books
 
-			for book in books:
-				book.issuet = True
-				book_loan.books.add(book)
-				book.save()
+				for book in books:
+					book.issuet = True
+					book_loan.books.add(book)
+					book.save()
 
-			book_loan.save()
-			cart.books.clear()
-			cache.delete(code)
+				book_loan.save()
+				cart.books.clear()
+				cache.delete(code)
 
-	return render(request, 'books_app/issuance.html', context)
+		return render(request, 'books_app/issuance.html', context)
+	else:
+		return redirect('/')
 
 @login_required
 def order(request):
