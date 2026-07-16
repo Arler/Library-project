@@ -110,20 +110,20 @@ def order(request):
 
 @login_required
 def return_view(request):
-
-	if not cache.has_key(f'return_books_{request.user}'):
-		cache.set(f'return_books_{request.user}', set())
-	return_books = cache.get(f'return_books_{request.user}')
+	username_key = f'return_books_{request.user.username.replace(" ", "")}'
+	if not cache.has_key(username_key):
+		cache.set(username_key, set())
+	return_books = cache.get(username_key)
 	if 'action' in request.POST:
 		action = request.POST['action']
 		if action == 'addreturn':								# Добавление возвращаемой книги в соответствующий список для дальнейшего возврата
 			return_books.add(int(request.POST['book_id']))
-			cache.set(f'return_books_{request.user}', return_books)
-			return_books = list(cache.get(f'return_books_{request.user}'))
+			cache.set(username_key, return_books)
+			return_books = list(cache.get(username_key))
 		elif action == 'removereturn':							# Удаление возвращаемой книги из списка
 			return_books.discard(int(request.POST['book_id']))
-			cache.set(f'return_books_{request.user}', return_books)
-			return_books = list(cache.get(f'return_books_{request.user}'))
+			cache.set(username_key, return_books)
+			return_books = list(cache.get(username_key))
 		elif action == 'return':									# Возврат выбранных книг
 			book_loans = BookLoan.objects.filter(books__id__in=return_books, user=request.user).exclude(id__in=BookReturn.objects.values_list('loan', flat=True))
 			for book_loan in book_loans:
@@ -143,7 +143,7 @@ def return_view(request):
 					new_book_loan.books.set(not_returned_books)
 					new_book_loan.save()
 				book_return.save()
-			cache.delete(f'return_books_{request.user}')
+			cache.delete(username_key)
 
 	active_loans = BookLoan.objects.filter(user=request.user).exclude(id__in=BookReturn.objects.values_list('loan', flat=True))
 	issuet_books = Book.objects.filter(bookloan__in=active_loans)

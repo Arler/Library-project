@@ -3,3 +3,8 @@ services:
     build: .
     ports: 
       - "8000:8000"
+  cache:
+    image: memcached:alpine
+    command:
+      - --memory-limit=64
+      - --port=11211
